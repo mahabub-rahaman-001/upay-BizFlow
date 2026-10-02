@@ -1,0 +1,64 @@
+# Minimal Supabase local config. Run `supabase start`.
+project_id = "bizflow"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+
+[db]
+port = 54322
+major_version = 17
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+# Phone OTP is the production login (an SMS provider in Bangladesh). Locally there is no
+# provider, so the numbers below return a fixed code and no SMS is sent. Local only.
+[auth.sms]
+enable_signup = true
+enable_confirmations = false
+
+[auth.sms.test_otp]
+8801700000001 = "123456"
+8801700000002 = "123456"
+# Admin console demo logins (web): upay_admin, a second admin for dual control, and support.
+8801700000004 = "123456"
+8801700000005 = "123456"
+8801700000006 = "123456"
+
+# The CLI only turns phone auth on when a provider block is enabled. These credentials are
+# deliberately fake: a number listed in test_otp above is answered with its fixed code
+# before any provider is contacted, so nothing is ever sent. Local only.
+[auth.sms.twilio]
+enabled = true
+account_sid = "local-dev-not-a-real-sid"
+message_service_sid = "local-dev-not-a-real-service"
+auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
+
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed/seed.sql"]
+
+# The payment webhook is called by the provider, which has no Supabase JWT: it
+# authenticates with the HMAC signature instead, so JWT verification is off for it.
+[functions.payment-webhook]
+verify_jwt = false
+
+# The public receipt page is reached by a customer with no account; the token is the
+# credential and get_receipt is the only function granted to anon.
+[functions.receipt]
+verify_jwt = false
+
+# The simulator requires the caller's own JWT and refuses unless DEMO_MODE is set.
+[functions.simulator-pay]
+verify_jwt = true
+
+# The nightly forecast job is triggered by pg_cron with the service role key, which bypasses
+# JWT verification; it is never called by a client.
+[functions.ai-job]
+verify_jwt = false
