@@ -1,0 +1,53 @@
+{
+  "name": "mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "dev": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "web:demo": "node scripts/web-demo.mjs"
+  },
+  "dependencies": {
+    "@bizflow/shared": "workspace:*",
+    "@bizflow/ui": "workspace:*",
+    "@expo/metro-runtime": "~6.1.2",
+    "@supabase/supabase-js": "^2.45.0",
+    "@tanstack/react-query": "^5.59.0",
+    "expo": "~56.0.23",
+    "expo-constants": "~56.0.27",
+    "expo-file-system": "~56.0.11",
+    "expo-linking": "~56.0.18",
+    "expo-local-authentication": "~56.0.5",
+    "expo-router": "~56.2.21",
+    "expo-secure-store": "~56.0.4",
+    "i18next": "^23.15.0",
+    "nativewind": "^4.2.7",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-i18next": "^15.0.0",
+    "react-native": "0.85.3",
+    "react-native-qrcode-svg": "^6.3.26",
+    "react-native-safe-area-context": "~5.10.1",
+    "react-native-screens": "~4.28.0",
+    "react-native-svg": "~15.15.5",
+    "react-native-url-polyfill": "^2.0.0",
+    "react-native-web": "~0.21.3",
+    "zustand": "^5.0.0",
+    "@react-native-async-storage/async-storage": "^2.1.2",
+    "@react-native-community/netinfo": "^11.4.1"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.0",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "^10.0.0",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}
