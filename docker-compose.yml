@@ -1,0 +1,17 @@
+# Only the AI service lives here. Supabase (Postgres, Auth, Studio, Edge Functions) is run
+# by the Supabase CLI, which manages its own containers - orchestrating it a second time
+# here would clash with the CLI. The mobile app runs on the host for fast reload.
+#
+# Usage:
+#   docker compose up ai        # build + run the AI service on http://localhost:8000
+#   docker compose up -d ai     # same, in the background
+#   docker compose down         # stop it
+#
+# Or just run `pnpm demo:up`, which starts Supabase, seeds the demo, and brings this up.
+services:
+  ai:
+    build: ./apps/ai-service
+    container_name: bizflow-ai
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
