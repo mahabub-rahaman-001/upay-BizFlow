@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push: { branches: [main] }
+  pull_request: {}
+
+jobs:
+  # Fast checks with no database: lint, types, and the pure unit tests.
+  js:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      # Unit tests only here; the E2E suite needs a database and runs in the db job.
+      - run: pnpm --filter @bizflow/shared test
+
+  # Database checks: apply migrations and the demo seed, run pgTAP, then the mobile E2E
+  # happy-path against the live local Supabase.
+  db:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+      - uses: supabase/setup-cli@v1
+        with: { version: latest }
+      - run: pnpm install --frozen-lockfile
+      - name: Start Supabase and apply migrations + seed
+        run: supabase db start || supabase start
+      - run: supabase db reset
+      - name: pgTAP
+        run: supabase test db
+      - name: Export local Supabase keys for the E2E test
+        run: |
+          supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=' > .supabase-env
+          echo "EXPO_PUBLIC_SUPABASE_URL=$(grep '^API_URL=' .supabase-env | cut -d= -f2- | tr -d '\"')" >> "$GITHUB_ENV"
+          echo "EXPO_PUBLIC_SUPABASE_ANON_KEY=$(grep '^ANON_KEY=' .supabase-env | cut -d= -f2- | tr -d '\"')" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$(grep '^SERVICE_ROLE_KEY=' .supabase-env | cut -d= -f2- | tr -d '\"')" >> "$GITHUB_ENV"
+      - name: E2E happy-path
+        run: pnpm --filter mobile test
+
+  ai:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: apps/ai-service } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.14" }
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q
