@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(py -0)",
+      "Bash(npm view *)"
+    ]
+  }
+}
