@@ -1,0 +1,9 @@
+{
+  "sales7d": {
+    "lo_offset": 0.0,
+    "hi_offset": 0.0,
+    "target_coverage": 0.8,
+    "actual_coverage": 0.7981,
+    "n_samples": 312
+  }
+}
