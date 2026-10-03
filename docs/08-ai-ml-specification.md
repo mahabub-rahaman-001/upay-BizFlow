@@ -279,6 +279,24 @@ Time-based: first 70% train, next 15% validation, last 15% clean test; rolling-o
 7. **Data minimization & consent**: payer identities hashed; loyalty requires opt-in; training data pseudonymized; no raw PII to LLM providers.
 8. **Human oversight**: Super Admin AI-health dashboard; incident process for harmful outputs.
 
+## 14a. Delivery: the Today's Insights layer (see docs/14)
+
+The capabilities above are not surfaced as a chatbot. After login the home screen is a
+role-scoped "Today's Insights" feed, assembled by `today_insights(business_id)`:
+
+- It is scoped by business type. A Merchant feed draws on the sales forecast (`get_forecast`
+  with capability `sales7d`), cash-flow (`get_safe_to_withdraw`), supplier dues, KPI mix,
+  anomaly flags and pending settlements. An Agent feed draws on the float forecast
+  (`float24h`), a liquidity read of cash versus forecast demand, agent peak-hour expectation
+  (`agent_peak_hours`), anomaly and pending. Customer activity and a yesterday summary appear
+  for both, aggregate only.
+- Cross-role output is impossible: `get_forecast` rejects a capability that does not match the
+  business type, `_assert_business_type` guards the role-specific RPCs, and the role-scoped
+  fact views filter by `businesses.type`.
+- Every figure comes from the ledger or a facts view; the Bangla and English text is a
+  deterministic template around it, so the "the LLM never computes a number" rule holds with
+  no model call. `agent_peak_hours` abstains below a minimum of history rather than guessing.
+
 ## 15. Model cards (one per capability, kept in repo)
 
 Template: purpose · intended users · out-of-scope uses · training data (synthetic/pilot, period) · features · metrics by segment · known limitations · fallback · owner · last review date.

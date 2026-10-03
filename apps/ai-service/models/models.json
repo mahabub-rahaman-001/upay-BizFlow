@@ -1,0 +1,26 @@
+{
+  "sales7d": {
+    "active": "lgbm-quantile-0.1.0",
+    "feature_version": "v1",
+    "metrics": {
+      "baseline_wape": 0.4008,
+      "model": null,
+      "passed_gate": true,
+      "lgb_wape": 0.1273,
+      "coverage_80": 0.7981,
+      "improvement_vs_baseline": 0.6825,
+      "model_version": "lgbm-quantile-0.1.0"
+    }
+  },
+  "float24h": {
+    "active": "lgbm-quantile-0.1.0",
+    "feature_version": "v1",
+    "metrics": {
+      "baseline_wape": 0.9279,
+      "passed_gate": true,
+      "lgb_wape": 0.6011,
+      "coverage_p90": 0.8114,
+      "improvement_vs_baseline": 0.3522
+    }
+  }
+}

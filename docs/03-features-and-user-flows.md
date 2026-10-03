@@ -150,11 +150,18 @@ Deterministic KPIs, each with formula on tap; AI writes the plain-Bangla explana
 
 Health status [OK]/[WATCH]/[ALERT] = rule-based thresholds on the KPIs (no hidden score).
 
-### M13 — AI daily briefing
-Morning (8 am) and/or after closing. Max 5 lines, Bangla. Example in file 08.
+### M13 — AI daily briefing (Today's Insights home)
+After login the home screen is a role-scoped "Today's Insights" feed, not a chatbot: a
+prioritised list of cards (sales or liquidity outlook, cash-flow or peak-hour, customer
+activity, attention, pending) built by `today_insights`, in Bangla and English. Numbers come
+from the ledger and facts views; the AI only phrases them. A Merchant sees merchant insights
+and an Agent sees agent insights, never the other's. Full design in docs/14.
 
 ### M14 — Bangla AI assistant
-Floating button. Text or voice. Read-only tool calls over the user's own data. Every number links to the source records. Refuses actions ("I can't send money; here is the supplier screen").
+Note: in the current product the AI is delivered as the Today's Insights layer (M13), not as
+a chat product; there is no "Ask AI" chatbot button. The read-only assistant tools remain in
+the AI service for internal/report use. Text or voice entry (hold-to-talk) feeds the parse
+endpoint for quick entry, with the draft always confirmed before it is saved.
 
 ### M15 — Reports & AI report builder
 Standard: daily closing, sales by day/category, cash vs digital, expenses, suppliers, baki, refunds/disputes, offers, agent transaction book, commission.

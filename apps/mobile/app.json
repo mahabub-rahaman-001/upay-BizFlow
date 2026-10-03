@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "upay BizFlow",
+    "slug": "bizflow",
+    "scheme": "bizflow",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "plugins": ["expo-router", "expo-secure-store", "expo-local-authentication"],
+    "ios": { "supportsTablet": true, "bundleIdentifier": "com.upay.bizflow" },
+    "android": { "package": "com.upay.bizflow" },
+    "web": { "bundler": "metro", "output": "single" },
+    "experiments": { "typedRoutes": true }
+  }
+}

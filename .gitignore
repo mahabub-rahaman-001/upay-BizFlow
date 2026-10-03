@@ -1,0 +1,35 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+dist/
+.turbo/
+.expo/
+web-build/
+*.tsbuildinfo
+
+# env and secrets (never commit)
+.env
+.env.*
+!.env.example
+
+# python
+__pycache__/
+*.pyc
+.coverage
+.venv/
+venv/
+
+# supabase local
+supabase/.branches/
+supabase/.temp/
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# logs
+*.log

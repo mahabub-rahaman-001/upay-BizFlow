@@ -1,0 +1,35 @@
+{
+  "name": "bizflow",
+  "private": true,
+  "version": "0.1.0",
+  "description": "upay BizFlow - merchant and agent business operating platform",
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "db:start": "supabase start",
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset",
+    "db:test": "supabase test db",
+    "demo:reset": "node scripts/demo-reset.mjs",
+    "security:check": "node scripts/security-check.mjs",
+    "demo:up": "node scripts/demo-up.mjs",
+    "demo:down": "docker compose down",
+    "ai:up": "docker compose up -d --build ai",
+    "ai": "node scripts/ai-start.mjs"
+  },
+  "devDependencies": {
+    "turbo": "^2.1.0",
+    "typescript": "^5.6.0",
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "typescript-eslint": "^8.71.0",
+    "supabase": "^2.119.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

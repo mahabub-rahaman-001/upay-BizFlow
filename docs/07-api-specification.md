@@ -178,10 +178,11 @@ sequenceDiagram
 
 | Method | Path | Notes |
 |---|---|---|
-| GET | `/api/v1/reports/{report_key}?from&to&format=json|csv|xlsx|pdf` | Owner only; export creates `exports` row, 15-min signed URL, audit |
+| RPC | `report_rows(business_id, report_key, from, to)` | Owner only; role-scoped rows and every financial amount come from the ledger |
+| RPC | `log_export(business_id, report_key, filters, format, row_count, file_name)` | Re-auth required; creates the `exports` row and audit event before the client shares the local CSV |
 | POST | `/api/v1/ai/assistant` | `{message, conversation_id?}` → SSE stream; tool calls server-side; returns `citations[]` |
 | POST | `/api/v1/ai/parse-entry` | `{text|audio_path}` → draft entry `{kind, amount_minor, category, confidence}` (not saved) |
-| POST | `/api/v1/ai/report-builder` | `{request_text}` → `{report_key, filters, preview}` |
+| POST | `/api/v1/ai/report-builder` | `{request_text}` → `{report_key, filters}` intent only; preview rows always come from `report_rows` |
 | GET | `/api/v1/ai/briefing/latest` | Today's briefing with facts & version |
 | POST | `/api/v1/ai/outputs/{id}/feedback` | yes/no + reason |
 | GET | `/api/v1/health/kpis` | KPI values, formulas, status, AI explanation |
@@ -190,7 +191,7 @@ sequenceDiagram
 
 | Method | Path | Notes |
 |---|---|---|
-| GET | `/r/{token}` | HTML page; `Cache-Control: private, max-age=60`; `X-Robots-Tag: noindex` |
+| GET | `/r/{token}` | HTML page; `Cache-Control: private, max-age=60`; `X-Robots-Tag: noindex`. Served by the `receipt` Edge Function, reachable directly as `/functions/v1/receipt?token={token}`; the short `/r/{token}` form is a host rewrite onto it. |
 | POST | `/r/{token}/problem` | `{reason, contact?}` → dispute request; captcha + rate limit |
 | POST | `/r/{token}/loyalty-optin` | Explicit consent for stamps/offers (phone OTP light) |
 
@@ -219,7 +220,11 @@ Content-Type: application/json
 
 Rules: reject if signature invalid or `|now − t| > 300 s`; respond `200` within 2 s after durable insert (processing async); duplicates → `200 {"duplicate": true}`; unknown `account_ref` → quarantine table + alert. Event types: `payment.succeeded`, `payment.reversed`, `settlement.completed`, `refund.succeeded`, `refund.failed`, `dispute.opened`, `dispute.updated`, `agent.cash_in`, `agent.cash_out`, `agent.send_money`, `agent.commission`.
 
-Hackathon: `POST /functions/v1/simulator/pay` (admin/demo only) generates a signed event through the same webhook path.
+Hackathon: `POST /functions/v1/simulator-pay` (demo only) generates a signed event and sends it
+through the same webhook path, so a demo exercises the real signature check and the real posting
+rules. It refuses unless the function environment has `DEMO_MODE=true`, and it will only use the
+`account_ref` of a business the caller is a member of. (Supabase function names cannot contain a
+slash, hence `simulator-pay` rather than `simulator/pay`.)
 
 ## 15. Admin API (web, upay staff)
 

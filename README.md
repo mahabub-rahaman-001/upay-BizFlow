@@ -1,152 +1,222 @@
-# upay BizFlow — Documentation Index
+# upay BizFlow
 
-> **One line:** Other wallets only *take* the money. **upay BizFlow runs the shop after the money arrives.**
->
-> A mobile-first, AI-assisted business operating app for **upay merchants and upay agents**. Customers pay through **any** Bangla QR–compatible app (bKash, Nagad, Rocket, bank apps, upay). Every payment then turns into organized records, receipts, daily audit, offers, and AI guidance — the reason a merchant or agent chooses **upay** as their acquirer.
+> **Merchant & Agent Business Operating Platform** — a hackathon build (P0–P10) on Supabase + Expo + FastAPI.
 
-| Item | Value |
+Full design and specs: see the `docs/` folder (14 documents). Start with [`docs/00-README.md`](docs/00-README.md).
+
+---
+
+## What is built (P0 – P10 complete)
+
+| Phase | Contents |
 |---|---|
-| Product name | upay BizFlow |
-| Document set version | v1.0 — 2 October 2026 |
-| Hackathon tracks | Track 7 (Open Innovation), drawing on Track 5 (Merchant Intelligence) |
-| Primary users | Merchants (shopkeepers) and MFS Agents |
-| Platforms | Android, iOS, Web (one Expo codebase) + upay Admin web |
-| Language | Bangla-first UI, English secondary |
-| Team | Mahabub Rahaman (lead), Adiba Tasnim Chowdhury (UI/UX review) |
+| **P0 Setup** | pnpm/Turbo monorepo, Expo SDK 56, Supabase local, FastAPI stub, CI |
+| **P1 Data core** | 13 migrations — tenancy, double-entry ledger (append-only), RLS on every table, RPCs, pgTAP tests |
+| **P2 Auth & shell** | Phone OTP, PIN, membership routing, tab bars, design tokens, MoneyText, StatusPill, AICard |
+| **P3 Payments** | Edge Function webhook (HMAC + idempotent), payment simulator, Realtime banner + sound, receipt page |
+| **P4 Merchant books** | Cash-sale keypad, expense, baki (gave/received), suppliers & payables, review queue, daily closing |
+| **P5 Agent** | Agent book (type chips), float screen, day-end audit (cash + per-wallet), commission view |
+| **P6 Predictive AI** | LightGBM quantile model (sales7d + float24h), conformal calibration, match scorer, anomaly rules + IsolationForest, forecast_runs/ai_outputs |
+| **P7 Language AI** | LLM gateway, Bangla assistant with citations, voice/STT parse + number normalizer, report builder (CSV/XLSX), KPI explanations |
+| **P8 Planner & Offers** | Safe-to-withdraw RPC, what-if simulate, Planner UI; Offers CRUD (PERCENT_OFF / AMOUNT_OFF / BUY_X_GET_Y / STAMP_LOYALTY), budget cap with row-lock auto-pause, DiD results |
+| **P9 Admin web** | Portfolio KPIs, support case list + SLA timers, access grants, AI health metrics, feature flags & kill switches |
+| **P10 Harden & Demo** | Offline outbox (auto-sync on reconnect), OfflineBanner, VoiceButton (hold-to-talk + confirm modal), EmptyState / ErrorState on all screens, security checklist script, demo:reset, full README |
 
 ---
 
-## 1. Why this exists (30-second version)
-
-1. Bangla QR is **interoperable**: a customer using bKash can pay a merchant whose QR is issued by upay. So a merchant who switches to upay **loses no customers**.
-2. Since **1 October 2026**, Bangladesh Bank removed the minimum 1% MDR and made merchant settlement **instant** for Bangla QR. *Accepting* a QR payment is now a commodity — every provider offers it cheaply.
-3. Therefore the only durable way for upay to win merchants and agents is **what happens after the payment**: books, receipts, reconciliation, audit, supplier planning, offers, and AI guidance.
-4. bKash (≈8 lakh+ QR merchants) and others lead on reach. BizFlow is upay's **differentiation layer**, not another QR.
-
-See `01-product-vision-and-strategy.md` for the evidence and sources.
-
----
-
-## 2. The document set
-
-| # | File | What it answers | Main audience |
-|---|---|---|---|
-| 00 | `00-README.md` | What is this, where is everything | Everyone |
-| 01 | `01-product-vision-and-strategy.md` | Problem, market evidence, competition, value proposition, personas | Judges, upay business |
-| 02 | `02-users-roles-permissions.md` | The 5 roles + customer, permission matrix, account model | Product, backend |
-| 03 | `03-features-and-user-flows.md` | Every module and the step-by-step flows (merchant, agent, offers, customer, admin) | Product, frontend |
-| 04 | `04-ui-ux-design-system.md` | Screens, navigation, wireframes, design tokens, Bangla typography, accessibility | Design, frontend |
-| 05 | `05-system-architecture.md` | Tech stack, components, event flow, offline sync, scaling to national level | Engineering |
-| 06 | `06-data-model-and-ledger.md` | Database schema, double-entry ledger, state machines, RLS | Backend |
-| 07 | `07-api-specification.md` | REST/RPC endpoints, webhooks, idempotency, errors | Backend, frontend |
-| 08 | `08-ai-ml-specification.md` | All AI capabilities, models, features, evaluation, guardrails, MLOps | AI/ML |
-| 09 | `09-security-privacy-compliance.md` | Threat model, controls, Bangladesh regulation mapping, privacy | Security, judges |
-| 10 | `10-implementation-roadmap.md` | Hackathon build phases (hour by hour) + Pilot → City → National | Whole team |
-| 11 | `11-testing-qa-devops.md` | Test strategy, CI/CD, monitoring, incident runbooks | Engineering |
-| 12 | `12-business-model-kpis-pitch.md` | Economics, KPIs, rollout, pitch narrative, demo script, judging map | Judges, upay business |
-| 13 | `13-ai-build-playbook-and-skills.md` | How to build this fast with Claude/ChatGPT: skills (skills.sh), CLAUDE.md, phase prompts | Builders |
-
----
-
-## 3. Product at a glance
-
-### System context (C4 level 1)
-
-```mermaid
-flowchart TB
-    Customer["Customer<br/>pays with any Bangla QR app"]
-    Merchant["Merchant / Agent<br/>(BizFlow user)"]
-    Staff["Counter Staff"]
-    UpayStaff["upay Support and Admin"]
-
-    subgraph BizFlow["upay BizFlow Platform"]
-        App["Mobile and Web App<br/>(Expo)"]
-        Core["Deterministic Core<br/>ledger, closing, receipts"]
-        AI["AI Layer<br/>forecast, assistant, anomaly"]
-        Admin["Admin Web Console"]
-    end
-
-    Upay["upay Acquiring and Agent Platform<br/>(Bangla QR via NPSB)"]
-    LLM["LLM Provider<br/>(pseudonymized facts only)"]
-
-    Customer -->|scan and pay| Upay
-    Upay -->|signed payment events| Core
-    Merchant --> App
-    Staff --> App
-    App --> Core
-    App --> AI
-    Core --> AI
-    AI -.->|facts only| LLM
-    UpayStaff --> Admin
-    Admin --> Core
-    Core -->|refund and dispute requests| Upay
-    Core -->|digital receipt link| Customer
-```
-
+## Project structure
 
 ```text
-Customer pays with ANY app via Bangla QR (acquired by upay)
-        │
-        ▼
-upay payment event ──► BizFlow ledger (auto entry, double-entry, immutable)
-        │                         │
-        │                         ├─► Digital receipt (+ offer / stamp progress) to customer
-        │                         ├─► Merchant: sales, baki, suppliers, daily closing
-        │                         └─► Agent: cash-in/out/send-money book, float audit, commission
-        ▼
-AI layer (advice only) ── forecast · float forecast · match suggestions · anomaly flags
-                         · daily briefing · Bangla assistant · voice entry · offer advisor
-                         · report builder · health explanation
-        │
-        ▼
-Owner decides. The system never moves money by itself.
+bizflow/
+  apps/
+    mobile/           Expo app (iOS · Android · Web)
+      app/            Expo Router screens
+        (app)/        Authenticated merchant/agent tabs
+          index.tsx   Home (balances, forecast, AI card)
+          transactions.tsx
+          receive.tsx (QR)
+          books.tsx   (closing, baki, suppliers, review)
+          offers.tsx  3-step wizard + offers list
+        admin/        Admin web console (web-only)
+      components/
+        OfflineBanner.tsx   Offline queue status bar
+        VoiceButton.tsx     Hold-to-talk + confirm modal
+        EmptyState.tsx      EmptyState / ErrorState / NetworkErrorState
+        MoneyEntryScreen.tsx
+      lib/
+        api.ts         All Supabase hooks — every money write through RPCs
+        outbox.ts      Offline outbox (AsyncStorage + NetInfo auto-flush)
+        session.ts     Zustand session (active business, role)
+        supabase.ts    Supabase client
+      locales/         bn.json + en.json (full coverage P0–P10)
+    ai-service/       FastAPI — forecast, assistant, voice/STT, anomaly
+    models/           LightGBM notebooks + calibration
+  packages/
+    shared/           money utils, zod schemas, RPC arg builders, tests
+    ui/               design tokens, TxnRow, Card, ActionList, MoneyText, StatusPill, AICard
+  supabase/
+    migrations/       0001–0013 SQL migrations
+    seed/             seed.sql — demo merchant + agent + 180-day synthetic data
+    tests/            0001–0014 pgTAP test files (149 tests)
+    functions/        Edge Functions (payment-webhook, simulator/pay, receipt)
+  scripts/
+    demo-reset.mjs    pnpm demo:reset — wipe + reseed + validate + print credentials
+    security-check.mjs  pnpm security:check — 13 automated checks from docs/09 §9
+  docs/               14 specification documents
 ```
 
-### Roles (details in file 02)
+---
 
-| Role | Where | Summary |
+## Prerequisites
+
+| Tool | Version | Why |
 |---|---|---|
-| Merchant Owner | Mobile app | Full shop control |
-| Agent Owner | Mobile app | Full agent-point control |
-| Staff | Mobile app | Limited counter work, own shift only |
-| upay Support | Web admin | Cases, disputes, refunds (reason-logged access) |
-| upay Super Admin | Web admin | Portfolio KPIs, campaigns, AI health, kill switches |
-| Customer | Receipt link (no login) | Pays, receives receipt and offer progress |
-
-### Navigation (details in file 04)
-
-- **Merchant tabs:** Home · Transactions · **[QR]** · Books · Offers
-- **Agent tabs:** Home · Transactions · **[QR]** · Float · Offers
-- **Staff tabs:** QR · My Transactions · Add Cash Sale · My Shift
+| Node.js | 20+ | runtime |
+| pnpm | 9+ | workspace manager (`npm i -g pnpm@9`) |
+| Docker Desktop | latest | local Postgres for Supabase |
+| Supabase CLI | devDependency | `npx supabase …` |
+| Python | 3.12–3.14 | AI service |
+| Expo Go (phone) or emulator | – | mobile app |
 
 ---
 
-## 4. Golden rules (apply to every file)
+## Run the demo (easy path)
 
-1. **Money truth is deterministic.** Ledger, balances, settlement, refunds, permissions, fees → fixed rules and database constraints. Never an AI output.
-2. **AI advises, the owner decides.** AI never transfers, withdraws, refunds, blocks, or edits records.
-3. **Every AI output shows:** what, why, which data, confidence, and what the user can do.
-4. **AI can fail safely.** If any AI service is down, payments, ledger, receipts and closing keep working; AI cards fall back to simple baselines or hide.
-5. **Append-only books.** Nothing financial is edited or deleted — only reversed and replaced, with an audit entry.
-6. **Bangla first, three things at a time.** A screen shows at most three action items. Colour + number + one sentence.
-7. **Privacy by default.** Minimum customer data, explicit consent for loyalty/marketing, no secrets in the app.
-8. **Hackathon honesty.** Real upay/NPSB APIs are simulated behind an adapter with the same contract; slides say so.
+Docker Desktop must be running. From the project root:
+
+```bash
+pnpm install        # first time only
+pnpm demo:up        # starts Supabase, seeds the demo, builds the AI service
+pnpm --filter mobile dev   # the app, on http://localhost:8081
+```
+
+Open http://localhost:8081 and tap a demo login (or use a number below, OTP `123456`).
+
+| Who | Phone |
+|---|---|
+| Merchant (Karim Store) | 01700000001 |
+| Agent (Rahim Agent Point) | 01700000002 |
+| Staff | 01700000003 |
+| Admin console (`/admin`) | 01700000004 / 005 / 006 |
+
+### AI service (voice + live forecast)
+
+Easiest, works everywhere (no Docker Hub needed) - run it on the host in its own terminal:
+
+```bash
+pnpm ai
+```
+
+It sets up the Python virtualenv the first time, then serves on http://localhost:8000. The
+app also works without it - the forecast card falls back to seeded data.
+
+Prefer Docker? `pnpm demo:up` builds and starts the AI container automatically when Docker
+Hub is reachable; stop it with `pnpm demo:down`.
+
+## Setup
+
+```bash
+# 1. Install JS deps
+pnpm install
+
+# 2. Start local Supabase (Postgres :54322, Studio :54323)
+pnpm db:start
+
+# 3. First-time reset — runs migrations + seed
+pnpm db:reset
+
+# 4. Copy env (paste anon key + URLs from `supabase start` output)
+cp apps/mobile/.env.example apps/mobile/.env
+
+# 5. Run the mobile app (web + QR for Expo Go)
+pnpm --filter mobile dev
+
+# 6. Run the AI service
+cd apps/ai-service
+python -m venv .venv && source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload   # http://localhost:8000/v1/health
+```
 
 ---
 
-## 5. Key sources used across the set
+## Demo
 
-- Bangladesh Bank Bangla QR reforms effective 1 Oct 2026 (instant settlement, MDR floor removed, ≈39 lakh merchant points): [The Daily Star, 30 Sep 2026](https://www.thedailystar.net/business/news/bangla-qr-payments-become-cheaper-instant-merchants-tomorrow-bb-4286986)
-- Bangla QR dispute & auto-refund guideline effective 1 Dec 2026: [The Daily Star](https://www.thedailystar.net/business/news/bb-sets-strict-timelines-bangla-qr-payment-dispute-resolution-4284271), [The Daily Star — auto refund](https://www.thedailystar.net/business/economy/news/customers-get-auto-refund-if-bangla-qr-transactions-fail-4284581)
-- Bangla QR history and risks: [TBS, 29 Sep 2026](https://www.tbsnews.net/supplement/bangla-qr-building-foundation-cash-lite-bangladesh-1557011)
-- MFS market shares: [The Daily Star, 16 Jul 2026](https://www.thedailystar.net/business/news/tk-6000cr-moves-daily-not-every-wallet-winning-4220811)
-- bKash Bangla QR network: [Dhaka Tribune, 22 Jul 2026](https://www.dhakatribune.com/business/415730/bkash-deploys-largest-bangla-qr-network-nationwide)
-- MFS monthly statistics (Oct 2025): [The Financial Express](https://thefinancialexpress.com.bd/trade/mfs-transactions-maintain-rising-trend-in-oct-25)
-- Personal Data Protection Ordinance 2025: [Asia News Network summary](https://asianews.network/?p=234602)
-- MFS Regulations 2022: [Bangladesh Bank PDF](https://www.bb.org.bd/aboutus/regulationguideline/psd/mfs_regulations_2022.pdf)
-- ICT Security Guideline v4 (2023): [Bangladesh Bank PDF](https://www.bb.org.bd/aboutus/regulationguideline/brpd/jun192023_ictsecurityv4.pdf)
-- Digital khata competitor (TallyKhata): [tallykhata.com](https://www.tallykhata.com/million-shopkeepers-using-tallykhata-app-for-records-and-payments/)
-- Expo SDK 56 (RN 0.85, React 19.2): [expo.dev/sdk/56](https://expo.dev/sdk/56)
-- Agent skills: [skills.sh](https://www.skills.sh/), [Expo skills](https://docs.expo.dev/skills/)
+```bash
+# Full demo reset (wipes DB, re-seeds, runs all tests, prints credentials)
+pnpm demo:reset
 
-> Regulatory facts move quickly. Before any production decision, upay Legal, Compliance and Payment Operations must confirm the current rule text. Figures above are from news reports, not the official circulars.
+# Security checklist only
+pnpm security:check
+
+# pgTAP DB tests only
+pnpm db:test
+```
+
+### Demo accounts (OTP: `123456`)
+
+| Role | Phone | Business |
+|---|---|---|
+| merchant_owner | `01700000001` | Karim Store (grocery) |
+| agent_owner | `01700000002` | Rahim Agent Point |
+| staff | `01700000003` | Karim Store (restricted) |
+
+Admin console: `http://localhost:8081/admin`
+Supabase Studio: `http://localhost:54323`
+
+---
+
+## Demo script (happy path)
+
+1. **Login** as Karim (`01700000001`, OTP `123456`)
+2. **Home** → see balance, 7-day forecast band, safe-to-withdraw amount
+3. Open browser → `/simulator/pay` → send Tk 850 → **Realtime banner** appears + sound
+4. **Cash sale** by voice (hold 🎙️, say *"৫০০ টাকা চাল বিক্রি"*) → confirm
+5. **Expense** → enter supplier payment
+6. **Closing** → preview → physical count → post (variance → account 9000)
+7. **Offers** → create stamp loyalty card in 3 steps → publish
+8. Switch to Rahim (`01700000002`) → **Agent book** → float audit → float advice
+9. **Assistant** → ask 3 Bangla questions → see citations
+10. **Admin console** (`/admin`) → toggle `ai.forecast` kill switch → app shows baseline label
+
+---
+
+## Available scripts
+
+| Command | What it does |
+|---|---|
+| `pnpm dev` | Start all apps in dev mode |
+| `pnpm build` | Production build |
+| `pnpm lint` | ESLint across all packages |
+| `pnpm typecheck` | TypeScript strict check |
+| `pnpm test` | Vitest unit tests |
+| `pnpm db:start` | Start local Supabase |
+| `pnpm db:reset` | Drop + re-migrate + seed |
+| `pnpm db:test` | Run 149 pgTAP DB tests |
+| `pnpm demo:reset` | Full demo reset + validate + print credentials |
+| `pnpm security:check` | Run 13 automated security checks |
+
+---
+
+## Key design decisions
+
+- **Offline-first outbox** — every posting mutation checks `NetInfo` before calling Supabase. If offline, the call is persisted to `AsyncStorage` with its idempotency key and auto-replayed when connectivity returns. The `OfflineBanner` shows count + manual retry.
+- **Double-entry integrity** — all money writes go through Supabase RPCs. A DB trigger verifies every transaction balances (Σ debits = Σ credits) and rejects any UPDATE/DELETE on ledger tables.
+- **AI never invents numbers** — the LLM reads read-only SQL views; a number validator cross-checks every figure in the LLM response against the DB before it reaches the UI.
+- **Budget-capped offers** — `redeem_offer` uses `SELECT … FOR UPDATE` on the offer row so concurrent redemptions never exceed `budget_minor`. When `spent_minor` reaches the cap the offer auto-pauses.
+- **RLS on every table** — cross-tenant access is impossible at the DB layer; the pgTAP suite verifies this on every migration.
+
+---
+
+## Docs index
+
+| File | Topic |
+|---|---|
+| `docs/00-README.md` | Start here |
+| `docs/01-product-vision.md` | Why BizFlow exists |
+| `docs/04-ui-ux-design-system.md` | Screen specs, tokens |
+| `docs/06-data-model-and-ledger.md` | Account codes, journal, RLS |
+| `docs/08-ai-ml-specification.md` | Forecast, assistant, voice |
+| `docs/09-security-privacy-compliance.md` | Security checklist |
+| `docs/10-implementation-roadmap.md` | Phase plan |
+| `docs/13-ai-build-playbook-and-skills.md` | AI coding guide |
