@@ -1,0 +1,27 @@
+{
+  "last_value": {
+    "wape": 0.4414,
+    "note": "baseline"
+  },
+  "mean_7d": {
+    "wape": 0.2803,
+    "note": "baseline"
+  },
+  "seasonal_naive": {
+    "wape": 0.3148,
+    "note": "baseline"
+  },
+  "seasonal_mean_4w": {
+    "wape": 0.274,
+    "note": "baseline"
+  },
+  "trend_seasonal": {
+    "wape": 0.3025,
+    "note": "baseline"
+  },
+  "lightgbm_quantile": {
+    "wape": 0.1526,
+    "pi_coverage_80": 0.8074,
+    "note": "candidate"
+  }
+}
